@@ -1,0 +1,69 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>from starlette import status\r\nfrom pydantic import BaseModel, Field\r\nfrom fastapi import FastAPI,Depends,Path,Query, HTTPException\r\nfrom sqlalchemy.orm import Session\r\nfrom models import Base, Todo\r\nfrom database import engine, SessionLocal\r\nfrom typing import Annotated\r\n\r\n\r\napp = FastAPI()\r\n\r\nBase.metadata.create_all(bind=engine)\r\n\r\nclass TodoRequest(BaseModel):\r\n    title:str = Field(min_length=3)\r\n    description:str = Field(min_length=3 , max_length= 3000)\r\n    priority : int  = Field(gt=0, lt = 6)\r\n    complete : bool\r\n\r\n\r\ndef get_db():\r\n    db = SessionLocal()\r\n    try:\r\n        yield db #birden fazla veri döndürmek için\r\n    finally:\r\n        db.close()\r\n\r\ndb_dependency = Annotated[Session, Depends(get_db)]\r\n\r\n@app.get(\"/read_all\")\r\nasync def read_all(db: db_dependency):\r\n    return db.query(Todo).all()\r\n\r\n\r\n@app.get(\"/read_one/{todo_id}\", status_code =status.HTTP_200_OK)\r\nasync def read_by_id(db: db_dependency, todo_id: int = Path(gt = 0)):\r\n    todo = db.query(Todo).filter(Todo.id == todo_id).first() #first ilk gelen elemanı döndürecek\r\n    if todo is not None:\r\n        return todo\r\n    raise HTTPException(status_code = status.HTTP_404_NOT_FOUND, detail = \"todo not found\" )\r\n\r\n\r\n@app.post(\"/create_todo\", status_code=status.HTTP_201_CREATED)\r\nasync def create_todo(db:db_dependency, todo_request: TodoRequest):\r\n    todo = Todo(**todo_request.dict())\r\n    db.add(todo)\r\n    db.commit()#add dedikten sonra commit demez isek çalışmaz. işlemin yapılacağı anlamına gelir\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	(revision fd0dc529428145008f75acf3dc41a7ad4c510789)
++++ b/main.py	(date 1737051779640)
+@@ -42,7 +42,7 @@
+ 
+ @app.post("/create_todo", status_code=status.HTTP_201_CREATED)
+ async def create_todo(db:db_dependency, todo_request: TodoRequest):
+-    todo = Todo(**todo_request.dict())
++    todo = Todo(**todo_request.model_dump())
+     db.add(todo)
+     db.commit()#add dedikten sonra commit demez isek çalışmaz. işlemin yapılacağı anlamına gelir
+ 
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"b50f6ebd-0c42-4538-a80a-19c0d4df4217\" name=\"Changes\" comment=\"db_connected\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/database.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/database.py\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/main.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/main.py\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/models.py\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/models.py\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Python Script\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"desktop\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;qwthree8&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/qwthree8/ToDoGemini.git&quot;,\r\n    &quot;accountId&quot;: &quot;54a96b83-221a-41d4-9326-34d77d210a0a&quot;\r\n  }\r\n}</component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 7\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"2re1noscYQju86SvNwNjleLSLuo\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\">\r\n    <OptionsSetting value=\"false\" id=\"Update\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\">{\r\n  &quot;keyToString&quot;: {\r\n    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,\r\n    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,\r\n    &quot;git-widget-placeholder&quot;: &quot;desktop&quot;,\r\n    &quot;last_opened_file_path&quot;: &quot;C:/Users/qwthr/PycharmProjects/CrudStructural/main.py&quot;,\r\n    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;\r\n  }\r\n}</component>\r\n  <component name=\"SharedIndexes\">\r\n    <attachedChunks>\r\n      <set>\r\n        <option value=\"bundled-python-sdk-495700d161d3-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.22562.220\" />\r\n      </set>\r\n    </attachedChunks>\r\n  </component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"b50f6ebd-0c42-4538-a80a-19c0d4df4217\" name=\"Changes\" comment=\"\" />\r\n      <created>1736904895313</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1736904895313</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"usingLibrary\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1736906335588</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1736906335588</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"usingLibrary1\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1736906739954</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1736906739954</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"usingLibrary1\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1736906792802</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1736906792802</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"4\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"usingLibrary\" />\r\n    <MESSAGE value=\"usingLibrary2\" />\r\n    <MESSAGE value=\"usingLibrary1\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"usingLibrary1\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision fd0dc529428145008f75acf3dc41a7ad4c510789)
++++ b/.idea/workspace.xml	(date 1737050693726)
+@@ -4,12 +4,7 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="b50f6ebd-0c42-4538-a80a-19c0d4df4217" name="Changes" comment="db_connected">
+-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/database.py" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models.py" afterDir="false" />
+-    </list>
++    <list default="true" id="b50f6ebd-0c42-4538-a80a-19c0d4df4217" name="Changes" comment="get_and_post" />
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+@@ -102,13 +97,22 @@
+       <option name="project" value="LOCAL" />
+       <updated>1736906792802</updated>
+     </task>
+-    <option name="localTasksCounter" value="4" />
++    <task id="LOCAL-00004" summary="get_and_post">
++      <option name="closed" value="true" />
++      <created>1737048701925</created>
++      <option name="number" value="00004" />
++      <option name="presentableId" value="LOCAL-00004" />
++      <option name="project" value="LOCAL" />
++      <updated>1737048701925</updated>
++    </task>
++    <option name="localTasksCounter" value="5" />
+     <servers />
+   </component>
+   <component name="VcsManagerConfiguration">
+     <MESSAGE value="usingLibrary" />
+     <MESSAGE value="usingLibrary2" />
+     <MESSAGE value="usingLibrary1" />
+-    <option name="LAST_COMMIT_MESSAGE" value="usingLibrary1" />
++    <MESSAGE value="get_and_post" />
++    <option name="LAST_COMMIT_MESSAGE" value="get_and_post" />
+   </component>
+ </project>
+\ No newline at end of file
