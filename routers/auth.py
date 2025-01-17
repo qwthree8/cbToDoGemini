@@ -23,7 +23,7 @@ ALGORITHM = "HS256"
 
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/auth/token")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/Auth/token")
 
 def get_db():
     db = SessionLocal()
@@ -33,9 +33,9 @@ def get_db():
         db.close()
 db_dependency = Annotated[Session, Depends(get_db)]
 
-def create_acces_token(username:str , user_id:int ,role:str , expries_delta: timedelta):
+def create_acces_token(username:str , user_id:int ,role:str , expires_delta: timedelta):
     payload = {"sub": username , "id": user_id , "role": role}
-    expires = datetime.now(timezone.utc) + expries_delta #datetime.now(timezone.utc) = çalıştığı andaki zamani verir ( geçerlilik süresi)
+    expires = datetime.now(timezone.utc) + expires_delta #datetime.now(timezone.utc) = çalıştığı andaki zamani verir ( geçerlilik süresi)
     payload.update({"exp":expires}) #sürenin ne zaman geçerli olmayacağını belirttik
     return jwt.encode(payload, SECRET_KEY_, algorithm=ALGORITHM)
 
@@ -49,7 +49,7 @@ class CreateUserRequest(BaseModel):
     role : str
 
 class Token(BaseModel):
-    acces_token: str
+    access_token: str
     token_type:  str
 
 def authenticate_user(username: str,password: str , db: Session):
@@ -97,10 +97,10 @@ async def delete_user (db: db_dependency ,  selected_id: int = Path(gt=0)):
     db.commit()
 
 @router.post("/token", response_model = Token)
-async def login_for_acces_token(db: db_dependency,
+async def login_for_access_token(db: db_dependency,
                                 form_data: Annotated[OAuth2PasswordRequestForm,Depends()]):
     user = authenticate_user(form_data.username,form_data.password,db)
     if not user :
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED , detail="Username not found")
     token = create_acces_token(user.username, user.id,  user.role, timedelta(minutes=60))
-    return {"acces_token":token ,"token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer"}
