@@ -7,7 +7,6 @@
     <list default="true" id="b50f6ebd-0c42-4538-a80a-19c0d4df4217" name="Changes" comment="jwd_added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.db" beforeDir="false" afterPath="$PROJECT_DIR$/database.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routers/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/auth.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routers/todo.py" beforeDir="false" afterPath="$PROJECT_DIR$/routers/todo.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

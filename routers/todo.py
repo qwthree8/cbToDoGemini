@@ -27,7 +27,7 @@ def get_db():
     finally:
         db.close()
 
-db_dependency = Annotated[Session, Depends(get_db)]
+db_dependency = Annotated[Session, Depends(get_db)] #dependency = bağımlılık , annotated = dipnot
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 @router.get("/read_all")
@@ -46,8 +46,11 @@ async def read_by_id(db: db_dependency, todo_id: int = Path(gt = 0)):
 
 
 @router.post("/create", status_code=status.HTTP_201_CREATED)
-async def create(db:db_dependency, todo_request: TodoRequest):
-    todo = Todo(**todo_request.model_dump())
+async def create(user: user_dependency,db:db_dependency, todo_request: TodoRequest):
+    if user in None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+    todo = Todo(**todo_request.model_dump(), owner_id =user.get("id"))
     db.add(todo)
     db.commit()#add dedikten sonra commit demez isek çalışmaz. işlemin yapılacağı anlamına gelir
 
